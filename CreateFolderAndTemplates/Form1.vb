@@ -1,18 +1,47 @@
 ﻿Imports System.IO
 Imports System.Collections.Generic
 Imports Microsoft.Office.Tools.Word
+Imports System.Net.Mail
 Public Class Form1
 
     Private Const ClientFolderPath As String = "C:\A1\work\autoDoc\clients"
     Private Const TemplateFilesPath As String = "C:\A1\work\autoDoc\template"
-
+    Private Const trelloBoardListEmailID As String = "a1x115+1ltukpnyj7ynskse8vmr@boards.trello.com"
 
     Private Sub btnCopyTemplates_Click(sender As Object, e As EventArgs) Handles btnCopyTemplates.Click
         If NoName() Then
             MessageBox.Show("Please provide at least one name")
             Return
         End If
-        copyFiles(Nothing)
+        Dim clientFolderName As String
+        clientFolderName = generateClientFolderName()
+        copyFiles(Nothing, clientFolderName)
+        createTrelloCard(clientFolderName)
+    End Sub
+
+    Private Sub createTrelloCard(clientFolderName As String)
+        sendEmailToTrelloBoard(subject:=clientFolderName, trelloBoardListEmailID:=trelloBoardListEmailID)
+    End Sub
+
+    Private Sub sendEmailToTrelloBoard(subject As String, trelloBoardListEmailID As String)
+        Try
+            Dim mail As MailMessage = New MailMessage()
+            'Dim SmtpServer As SmtpClient = New SmtpClient("smtp.gmail.com")
+            Dim SmtpServer As SmtpClient = New SmtpClient("smtp.microsoft.com")
+            '        mail.From = New MailAddress("divsh007@gmail.com")
+            mail.From = New MailAddress("divsh@live.com")
+            mail.To.Add(trelloBoardListEmailID)
+            mail.Subject = subject
+            mail.Body = "test body"
+            SmtpServer.Port = 587
+            'SmtpServer.Credentials = New System.Net.NetworkCredential("divsh007@gmail.com", "Golmal^19")
+            SmtpServer.Credentials = New System.Net.NetworkCredential("divsh@live.com", "rati4onalrobot")
+            SmtpServer.DeliveryMethod = SmtpDeliveryMethod.Network
+            SmtpServer.EnableSsl = True
+            SmtpServer.Send(mail)
+        Catch ex As Exception
+            MessageBox.Show(ex.Message)
+        End Try
     End Sub
 
     Function NoName() As Boolean
@@ -32,9 +61,6 @@ Public Class Form1
 
     Function generateClientFolderName() As String
         Dim name(10) As String
-
-
-
         name(0) = txtName1.Text.Trim
         name(1) = txtName2.Text.Trim
         name(2) = txtName3.Text.Trim
@@ -50,11 +76,11 @@ Public Class Form1
     Function createFolder(name As String) As DirectoryInfo
         Return Directory.CreateDirectory(Path.Combine(ClientFolderPath, name))
     End Function
-    Sub copyFiles(dinf As DirectoryInfo)
-        Dim clientFolderName As String
-        clientFolderName = createFolder(generateClientFolderName).FullName
+    Sub copyFiles(dinf As DirectoryInfo, clientFolderName As String)
+        Dim clientFolderFullPathName As String
+        clientFolderFullPathName = createFolder(clientFolderName).FullName
         For Each item As String In clbFile.CheckedItems
-            File.Copy(Path.Combine(TemplateFilesPath, item), Path.Combine(clientFolderName, item))
+            File.Copy(Path.Combine(TemplateFilesPath, item), Path.Combine(clientFolderFullPathName, item))
         Next
 
     End Sub
