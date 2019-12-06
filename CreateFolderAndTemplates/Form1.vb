@@ -19,23 +19,28 @@ Public Class Form1
         createTrelloCard(clientFolderName)
     End Sub
 
+
     Private Sub createTrelloCard(clientFolderName As String)
-        sendEmailToTrelloBoard(subject:=clientFolderName, trelloBoardListEmailID:=trelloBoardListEmailID)
+        Dim t As Threading.Thread = New Threading.Thread(Sub() sendEmailToTrelloBoard(subject:=clientFolderName, trelloBoardListEmailID:=trelloBoardListEmailID))
+        t.IsBackground = True
+        t.Start()
+
+        'sendEmailToTrelloBoard(subject:=clientFolderName, trelloBoardListEmailID:=trelloBoardListEmailID)
     End Sub
 
     Private Sub sendEmailToTrelloBoard(subject As String, trelloBoardListEmailID As String)
         Try
+            txtName1.Invoke(Sub() txtName1.Text = "set by background thread")
             Dim mail As MailMessage = New MailMessage()
-            'Dim SmtpServer As SmtpClient = New SmtpClient("smtp.gmail.com")
-            Dim SmtpServer As SmtpClient = New SmtpClient("smtp.microsoft.com")
+            Dim SmtpServer As SmtpClient = New SmtpClient("smtp.gmail.com")
+            'Dim SmtpServer As SmtpClient = New SmtpClient("smtp.microsoft.com")
             '        mail.From = New MailAddress("divsh007@gmail.com")
             mail.From = New MailAddress("divsh@live.com")
             mail.To.Add(trelloBoardListEmailID)
             mail.Subject = subject
             mail.Body = "test body"
             SmtpServer.Port = 587
-            'SmtpServer.Credentials = New System.Net.NetworkCredential("divsh007@gmail.com", "Golmal^19")
-            SmtpServer.Credentials = New System.Net.NetworkCredential("divsh@live.com", "rati4onalrobot")
+            SmtpServer.Credentials = New System.Net.NetworkCredential("divsh007@gmail.com", "Golmal^19")
             SmtpServer.DeliveryMethod = SmtpDeliveryMethod.Network
             SmtpServer.EnableSsl = True
             SmtpServer.Send(mail)
